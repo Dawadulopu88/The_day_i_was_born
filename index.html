@@ -1,0 +1,852 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The Day I Was Born</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="Enter your birth date, time and place to get a personal time capsule: what happened that day, the weather where you were born, the headlines, your birthday twins and your life in numbers.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one left-aligned reading column; hero pairs a "birth ticket" form with the live card preview; report flows as chapters below. */
+:root{
+  --bg:#F2F3F7; --surface:#FFFFFF; --ink:#161A2A; --muted:#5B6176; --line:#DADDE8;
+  --accent:#0E6E6A; --accent-soft:#DCEFEC; --candle:#C9821C; --candle-soft:#FBEFD9; --warn:#A6402E;
+  --f-display:"Bricolage Grotesque", "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  --f-body:"Newsreader", Georgia, "Times New Roman", serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --r:14px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0D1017; --surface:#151923; --ink:#ECEEF5; --muted:#9BA1B5; --line:#272D3B;
+  --accent:#4FC2B8; --accent-soft:#16312F; --candle:#F0B457; --candle-soft:#33281A; --warn:#F0897A; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0D1017; --surface:#151923; --ink:#ECEEF5; --muted:#9BA1B5; --line:#272D3B;
+  --accent:#4FC2B8; --accent-soft:#16312F; --candle:#F0B457; --candle-soft:#33281A; --warn:#F0897A; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:18px;line-height:1.55;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px))}
+.wrap{max-width:1120px;margin:0 auto}
+a{color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:6px}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:1.08;letter-spacing:-.01em}
+.eyebrow{font-family:var(--f-mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)}
+.small{font-size:15px}
+
+/* top bar */
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px;padding-block:20px 8px}
+.brand{font-family:var(--f-display);font-weight:800;font-size:18px;display:flex;gap:10px;align-items:center}
+.brand svg{width:26px;height:26px}
+.mode{font-family:var(--f-mono);font-size:12px;color:var(--muted);border:1px solid var(--line);padding:4px 10px;border-radius:999px}
+
+/* hero */
+.hero{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);gap:48px;align-items:start;padding-block:40px 56px}
+.hero h1{font-size:clamp(44px,7.4vw,92px);font-weight:800}
+.hero h1 em{font-style:normal;color:var(--candle)}
+.lede{font-size:21px;max-width:34ch;margin:18px 0 28px;color:var(--muted)}
+.ticket{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:22px;display:grid;gap:16px;position:relative}
+.ticket::before,.ticket::after{content:"";position:absolute;top:50%;width:18px;height:18px;border-radius:50%;background:var(--bg);border:1px solid var(--line);transform:translateY(-50%)}
+.ticket::before{left:-10px;clip-path:inset(0 0 0 50%)}
+.ticket::after{right:-10px;clip-path:inset(0 50% 0 0)}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+label{display:grid;gap:6px;font-family:var(--f-mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+input{font:500 17px/1.3 var(--f-display);color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:12px 12px;width:100%;min-width:0;letter-spacing:0;text-transform:none}
+input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.hint{font-family:var(--f-body);font-size:14px;text-transform:none;letter-spacing:0;color:var(--muted)}
+.go{font:700 18px var(--f-display);background:var(--ink);color:var(--bg);border:0;border-radius:10px;padding:15px 18px;cursor:pointer;display:flex;justify-content:space-between;align-items:center}
+.go:hover{background:var(--accent)}
+.go[disabled]{opacity:.6;cursor:progress}
+.err{color:var(--warn);font-size:15px;margin:0}
+.preview{display:grid;gap:10px}
+.preview canvas{width:100%;height:auto;border-radius:var(--r);box-shadow:0 18px 50px -24px rgba(10,14,30,.45);display:block}
+.preview .tag{display:flex;justify-content:space-between}
+
+/* includes strip */
+.includes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;margin-bottom:64px}
+.includes div{background:var(--surface);padding:18px 20px}
+.includes b{font-family:var(--f-display);display:block;font-size:18px;margin-bottom:4px}
+.includes span{font-size:15px;color:var(--muted)}
+
+/* report */
+#report[hidden]{display:none}
+.summary{border-top:2px solid var(--ink);padding-block:24px 8px;display:grid;gap:8px}
+.summary h2{font-size:clamp(34px,5vw,58px);font-weight:800}
+.summary .facts{display:flex;flex-wrap:wrap;gap:8px 22px;font-family:var(--f-mono);font-size:14px;color:var(--muted)}
+.chapter{padding-block:40px;border-bottom:1px solid var(--line);display:grid;grid-template-columns:220px minmax(0,1fr);gap:32px}
+.chapter > header{display:grid;gap:8px;align-content:start}
+.chapter h3{font-size:28px;font-weight:700}
+.chapter .src{font-size:14px;color:var(--muted)}
+.body{min-width:0;display:grid;gap:20px}
+.loading{color:var(--muted);font-style:italic}
+.note{font-size:15px;color:var(--muted);border-left:3px solid var(--line);padding-left:12px;margin:0}
+.badge{display:inline-block;font-family:var(--f-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;padding:3px 8px;border-radius:999px;background:var(--candle-soft);color:var(--candle);vertical-align:middle}
+.badge.ai{background:var(--accent-soft);color:var(--accent)}
+
+.timeline{list-style:none;margin:0;padding:0;display:grid}
+.timeline li{display:grid;grid-template-columns:64px minmax(0,1fr);gap:16px;padding:12px 0;border-top:1px solid var(--line)}
+.timeline li:first-child{border-top:0}
+.timeline .yr{font-family:var(--f-mono);font-size:15px;color:var(--accent);padding-top:2px}
+.timeline li.same .yr{color:var(--candle);font-weight:500}
+.feature{background:var(--candle-soft);border-radius:var(--r);padding:18px 20px;display:grid;gap:8px}
+.feature h4{margin:0;font-family:var(--f-display);font-size:18px}
+.feature ul{margin:0;padding-left:20px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{font-size:15px;border:1px solid var(--line);border-radius:999px;padding:4px 12px;background:var(--surface)}
+
+/* weather */
+.wx{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:20px;align-items:stretch}
+.wx-main{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:22px;display:grid;gap:6px;align-content:start}
+.wx-temp{font-family:var(--f-display);font-weight:800;font-size:72px;line-height:1}
+.wx-cond{font-family:var(--f-display);font-size:20px}
+.wx-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.wx-grid div{background:var(--surface);padding:14px 16px;display:grid;gap:2px}
+.wx-grid b{font-family:var(--f-mono);font-weight:500;font-size:20px;font-variant-numeric:tabular-nums}
+.wx-grid span{font-family:var(--f-mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.dayline{overflow-x:auto}
+.dayline svg{display:block;min-width:560px;width:100%;height:auto}
+
+/* headlines */
+.heads{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.head{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px 18px;display:grid;gap:6px;align-content:start}
+.head .cat{font-family:var(--f-mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)}
+.head p{margin:0;font-size:17px}
+
+/* twins */
+.twins{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px}
+.twin{display:grid;grid-template-columns:52px minmax(0,1fr);gap:12px;align-items:start;padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+.twin .ph{width:52px;height:52px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;font-family:var(--f-display);font-weight:700;overflow:hidden}
+.twin .ph img{width:100%;height:100%;object-fit:cover}
+.twin b{font-family:var(--f-display);font-size:16px;display:block;line-height:1.2}
+.twin span{font-size:14px;color:var(--muted);display:block}
+.twin .y{font-family:var(--f-mono);font-size:12px;color:var(--accent)}
+.twin.same{border-color:var(--candle);background:var(--candle-soft)}
+.twin.same .y{color:var(--candle)}
+
+/* clock */
+.clock{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));border:1px solid var(--line);border-radius:var(--r);overflow:hidden;background:var(--line);gap:1px}
+.clock div{background:var(--surface);padding:16px 10px;text-align:center}
+.clock b{display:block;font-family:var(--f-mono);font-weight:500;font-size:clamp(26px,4vw,40px);font-variant-numeric:tabular-nums;line-height:1.1}
+.clock span{font-family:var(--f-mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px 24px}
+.stat{display:grid;gap:2px;border-top:1px solid var(--line);padding-top:10px}
+.stat b{font-family:var(--f-mono);font-weight:500;font-size:22px;font-variant-numeric:tabular-nums}
+.stat span{font-size:15px;color:var(--muted)}
+
+/* card */
+.cardzone{display:grid;grid-template-columns:minmax(0,360px) minmax(0,1fr);gap:28px;align-items:start}
+.cardzone canvas{width:100%;height:auto;border-radius:var(--r);display:block;box-shadow:0 18px 50px -24px rgba(10,14,30,.45)}
+.actions{display:flex;flex-wrap:wrap;gap:10px}
+.btn{font:600 16px var(--f-display);border:1px solid var(--ink);background:transparent;color:var(--ink);border-radius:10px;padding:11px 16px;cursor:pointer}
+.btn.primary{background:var(--ink);color:var(--bg)}
+.btn:hover{border-color:var(--accent);color:var(--accent)}
+.btn.primary:hover{background:var(--accent);color:var(--bg)}
+textarea{width:100%;min-height:120px;font:16px/1.5 var(--f-body);color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:12px;resize:vertical}
+.toast{font-family:var(--f-mono);font-size:13px;color:var(--accent);min-height:1.2em}
+
+footer{padding-block:40px 56px;font-size:14px;color:var(--muted);display:grid;gap:6px}
+
+@media (max-width:860px){
+  .hero{grid-template-columns:1fr;gap:32px;padding-block:24px 40px}
+  .preview{max-width:420px}
+  .chapter{grid-template-columns:1fr;gap:16px}
+  .includes{grid-template-columns:1fr 1fr}
+  .wx,.heads,.cardzone{grid-template-columns:1fr}
+  .clock{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .stats{grid-template-columns:1fr 1fr}
+}
+@media (max-width:480px){
+  body{font-size:17px}
+  .row{grid-template-columns:1fr}
+  .includes{grid-template-columns:1fr}
+  .stats{grid-template-columns:1fr}
+  .wx-temp{font-size:56px}
+}
+@media (prefers-reduced-motion:no-preference){
+  .chapter{animation:rise .5s ease both}
+  @keyframes rise{from{transform:translateY(8px)}to{transform:none}}
+}
+</style>
+</head>
+<body>
+
+
+<div class="wrap">
+  <div class="top">
+    <div class="brand">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="14" fill="none" stroke="currentColor" stroke-width="2"/><path d="M16 6v10l6 4" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><circle cx="16" cy="16" r="2.4" fill="var(--candle)"/></svg>
+      The Day I Was Born
+    </div>
+    <span class="mode" id="mode">Checking data sources…</span>
+  </div>
+
+  <section class="hero">
+    <div>
+      <p class="eyebrow">Your personal time capsule</p>
+      <h1>What was the world like when <em>you</em> arrived?</h1>
+      <p class="lede">Give us your birth date, time and place. We'll rebuild that day: the history, the sky over your birthplace, the news, the famous people who share it, and every second since.</p>
+
+      <form class="ticket" id="form" novalidate>
+        <div class="row">
+          <label for="f-date">Birth date
+            <input id="f-date" type="date" required value="1998-03-14" min="1900-01-01">
+          </label>
+          <label for="f-time">Birth time <span class="hint">(optional)</span>
+            <input id="f-time" type="time" value="06:40">
+          </label>
+        </div>
+        <label for="f-place">Birthplace
+          <input id="f-place" type="text" list="place-list" autocomplete="off" placeholder="City, e.g. Dhaka" value="Dhaka">
+          <datalist id="place-list"></datalist>
+          <span class="hint">Type a city and pick it from the list for the most accurate weather.</span>
+        </label>
+        <p class="err" id="err" hidden></p>
+        <button class="go" id="go" type="submit"><span>Discover my birth day</span><span aria-hidden="true">→</span></button>
+      </form>
+    </div>
+
+    <div class="preview">
+      <div class="tag"><span class="eyebrow" id="preview-label">Example card</span><span class="eyebrow">1080 × 1350</span></div>
+      <canvas id="preview" width="1080" height="1350" aria-label="Preview of a birth moment card"></canvas>
+    </div>
+  </section>
+
+  <section class="includes" id="includes" aria-label="What your capsule includes">
+    <div><b>The world that day</b><span>Events from your birth year and from your date across history.</span></div>
+    <div><b>The sky above you</b><span>Temperature, rain, wind and sunlight where you were born.</span></div>
+    <div><b>Headlines</b><span>The news stories of that exact day, where records exist.</span></div>
+    <div><b>Birthday twins</b><span>Famous people born on your date, and any born the very same day.</span></div>
+    <div><b>Your life clock</b><span>Years, months, days and seconds since you arrived, ticking live.</span></div>
+    <div><b>Birth moment card</b><span>A poster of your day, ready to post and share.</span></div>
+  </section>
+
+  <main id="report" hidden>
+    <div class="summary">
+      <p class="eyebrow" id="sum-eyebrow">Your time capsule</p>
+      <h2 id="sum-title"></h2>
+      <div class="facts" id="sum-facts"></div>
+    </div>
+
+    <section class="chapter" id="ch-world">
+      <header><p class="eyebrow">The world that day</p><h3>History on your birthday</h3><p class="src" id="src-world"></p></header>
+      <div class="body" id="world"><p class="loading">Opening the archives…</p></div>
+    </section>
+
+    <section class="chapter" id="ch-sky">
+      <header><p class="eyebrow">The sky above you</p><h3 id="sky-title">Weather where you were born</h3><p class="src" id="src-sky"></p></header>
+      <div class="body" id="sky"><p class="loading">Reading the old skies…</p></div>
+    </section>
+
+    <section class="chapter" id="ch-news">
+      <header><p class="eyebrow">Headlines</p><h3>The news that day</h3><p class="src" id="src-news"></p></header>
+      <div class="body" id="news"><p class="loading">Pulling the day's front pages…</p></div>
+    </section>
+
+    <section class="chapter" id="ch-twins">
+      <header><p class="eyebrow">Birthday twins</p><h3>Born on your date</h3><p class="src" id="src-twins"></p></header>
+      <div class="body" id="twins"><p class="loading">Finding your birthday twins…</p></div>
+    </section>
+
+    <section class="chapter" id="ch-clock">
+      <header><p class="eyebrow">Your life clock</p><h3>Time since you arrived</h3><p class="src" id="src-clock"></p></header>
+      <div class="body" id="clock"></div>
+    </section>
+
+    <section class="chapter" id="ch-card">
+      <header><p class="eyebrow">Birth moment card</p><h3>Share your day</h3><p class="src">Post it, then ask your friends what their day looked like.</p></header>
+      <div class="body">
+        <div class="cardzone">
+          <canvas id="card" width="1080" height="1350" aria-label="Your birth moment card"></canvas>
+          <div style="display:grid;gap:14px;min-width:0">
+            <div class="actions">
+              <button class="btn primary" id="dl" type="button">Download card (PNG)</button>
+              <button class="btn" id="copy" type="button">Copy share text</button>
+            </div>
+            <label for="share-text">Share text<textarea id="share-text" readonly></textarea></label>
+            <p class="toast" id="toast" role="status"></p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <span>Data: Wikipedia "On this day" and Current Events portal (CC BY-SA), Open-Meteo historical weather (ERA5 reanalysis, CC BY 4.0), Open-Meteo geocoding.</span>
+    <span>Historical weather is a modelled estimate for a ~25 km grid around your city, not a weather-station reading.</span>
+  </footer>
+</div>
+
+<script>
+(() => {
+const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+const DAYS = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+const $ = s => document.querySelector(s);
+function h(tag, props, ...kids){
+  const el = document.createElement(tag);
+  if (props) for (const [k,v] of Object.entries(props)){
+    if (v == null || v === false) continue;
+    if (k === "class") el.className = v; else if (k === "text") el.textContent = v;
+    else if (k === "html") el.innerHTML = v; else el.setAttribute(k, v);
+  }
+  for (const c of kids.flat()) if (c != null && c !== false) el.append(c.nodeType ? c : document.createTextNode(String(c)));
+  return el;
+}
+const fmt = n => Math.round(n).toLocaleString("en-US");
+const pad = n => String(n).padStart(2,"0");
+
+/* ---------- networking ---------- */
+async function getJSON(url, ms = 12000){
+  const ctl = new AbortController(); const t = setTimeout(() => ctl.abort(), ms);
+  try { const r = await fetch(url, {signal: ctl.signal}); if (!r.ok) throw new Error("HTTP " + r.status); return await r.json(); }
+  finally { clearTimeout(t); }
+}
+let liveMode = null; // true: browser can reach public APIs. false: use Claude fallback.
+async function checkLive(){
+  if (liveMode !== null) return liveMode;
+  try { await getJSON("https://geocoding-api.open-meteo.com/v1/search?name=Dhaka&count=1", 6000); liveMode = true; }
+  catch { liveMode = false; }
+  $("#mode").textContent = liveMode ? "Live data: Wikipedia + Open-Meteo" : "Preview mode: AI-compiled history";
+  return liveMode;
+}
+let samplePromise = null;
+function getSample(){
+  if (!window.claude || !window.claude.use) return Promise.resolve(null);
+  if (!samplePromise) samplePromise = window.claude.use("sample").catch(() => null);
+  return samplePromise;
+}
+
+/* ---------- places ---------- */
+const placeMap = new Map();
+let suggestTimer;
+$("#f-place").addEventListener("input", e => {
+  clearTimeout(suggestTimer);
+  const q = e.target.value.trim();
+  if (q.length < 2 || placeMap.has(q)) return;
+  suggestTimer = setTimeout(async () => {
+    if (!(await checkLive())) return;
+    try {
+      const res = await geocode(q);
+      const list = $("#place-list"); list.textContent = "";
+      res.forEach(r => { const lbl = placeLabel(r); placeMap.set(lbl, r); list.append(h("option",{value:lbl})); });
+    } catch {}
+  }, 300);
+});
+const placeLabel = r => [r.name, r.admin1 && r.admin1 !== r.name ? r.admin1 : null, r.country].filter(Boolean).join(", ");
+async function geocode(q){
+  const parts = q.split(",").map(s => s.trim()).filter(Boolean);
+  const d = await getJSON("https://geocoding-api.open-meteo.com/v1/search?count=8&language=en&format=json&name=" + encodeURIComponent(parts[0]));
+  let res = d.results || [];
+  if (parts.length > 1){
+    const rest = parts.slice(1).join(" ").toLowerCase();
+    res.sort((a,b) => score(b) - score(a));
+    function score(r){ return [r.country, r.admin1, r.country_code].filter(Boolean).some(x => rest.includes(String(x).toLowerCase())) ? 1 : 0; }
+  }
+  return res;
+}
+
+/* ---------- astronomy helpers ---------- */
+function moonPhase(ms){
+  const syn = 29.530588853, ref = Date.UTC(2000,0,6,18,14);
+  let age = ((ms - ref) / 864e5) % syn; if (age < 0) age += syn;
+  const f = age / syn;
+  const names = ["New moon","Waxing crescent","First quarter","Waxing gibbous","Full moon","Waning gibbous","Last quarter","Waning crescent"];
+  const name = names[Math.floor((f * 8) + 0.5) % 8];
+  const illum = Math.round((1 - Math.cos(2*Math.PI*f)) / 2 * 100);
+  return {name, illum, age};
+}
+const WMO = {0:"Clear sky",1:"Mainly clear",2:"Partly cloudy",3:"Overcast",45:"Fog",48:"Freezing fog",51:"Light drizzle",53:"Drizzle",55:"Heavy drizzle",56:"Freezing drizzle",57:"Freezing drizzle",61:"Light rain",63:"Rain",65:"Heavy rain",66:"Freezing rain",67:"Freezing rain",71:"Light snow",73:"Snow",75:"Heavy snow",77:"Snow grains",80:"Rain showers",81:"Rain showers",82:"Violent rain showers",85:"Snow showers",86:"Heavy snow showers",95:"Thunderstorm",96:"Thunderstorm with hail",99:"Thunderstorm with hail"};
+
+/* ---------- life clock ---------- */
+function addMonthsUTC(d, k){
+  const y = d.getUTCFullYear(), m = d.getUTCMonth() + k;
+  const ty = y + Math.floor(m/12), tm = ((m % 12) + 12) % 12;
+  const last = new Date(Date.UTC(ty, tm+1, 0)).getUTCDate();
+  return new Date(Date.UTC(ty, tm, Math.min(d.getUTCDate(), last), d.getUTCHours(), d.getUTCMinutes(), d.getUTCSeconds()));
+}
+function lifeDiff(birthMs, offsetSec, nowMs){
+  const b = new Date(birthMs + offsetSec*1000), n = new Date(nowMs + offsetSec*1000);
+  let total = (n.getUTCFullYear()-b.getUTCFullYear())*12 + (n.getUTCMonth()-b.getUTCMonth());
+  let anchor = addMonthsUTC(b, total);
+  if (anchor > n){ total--; anchor = addMonthsUTC(b, total); }
+  let rem = Math.max(0, n - anchor);
+  const days = Math.floor(rem/864e5); rem -= days*864e5;
+  const hours = Math.floor(rem/36e5); rem -= hours*36e5;
+  const mins = Math.floor(rem/6e4); rem -= mins*6e4;
+  return {years: Math.floor(total/12), months: total%12, days, hours, mins, secs: Math.floor(rem/1000)};
+}
+function nextBirthday(b, offsetSec, nowMs){
+  const n = new Date(nowMs + offsetSec*1000);
+  const mo = b.m - 1, dd = b.d;
+  for (let y = n.getUTCFullYear(); y < n.getUTCFullYear() + 9; y++){
+    let day = dd;
+    if (mo === 1 && dd === 29 && new Date(Date.UTC(y,2,0)).getUTCDate() < 29) day = 28;
+    const t = Date.UTC(y, mo, day);
+    const today = Date.UTC(n.getUTCFullYear(), n.getUTCMonth(), n.getUTCDate());
+    if (t >= today) return {days: Math.round((t - today)/864e5), age: y - b.y, date: new Date(t)};
+  }
+}
+
+/* ---------- state ---------- */
+const S = {};
+let clockTimer = null;
+
+$("#form").addEventListener("submit", async e => {
+  e.preventDefault();
+  const err = $("#err"); err.hidden = true;
+  const dv = $("#f-date").value, tv = $("#f-time").value, pv = $("#f-place").value.trim();
+  if (!dv){ err.textContent = "Enter your birth date to continue."; err.hidden = false; return; }
+  const [y,m,d] = dv.split("-").map(Number);
+  const [hh,mm] = tv ? tv.split(":").map(Number) : [12,0];
+  if (Date.UTC(y,m-1,d) > Date.now()){ err.textContent = "That date is in the future. Check the year and try again."; err.hidden = false; return; }
+  if (y < 1900){ err.textContent = "Please choose a date from 1900 onward."; err.hidden = false; return; }
+  const btn = $("#go"); btn.disabled = true; btn.firstElementChild.textContent = "Building your capsule…";
+  try { await build({y,m,d,hh,mm,hasTime: !!tv, place: pv}); }
+  finally { btn.disabled = false; btn.firstElementChild.textContent = "Discover my birth day"; }
+});
+
+async function build(b){
+  Object.assign(S, {b, weather:null, place:null, offset:null, events:null, ai:null});
+  $("#report").hidden = false; $("#includes").hidden = true;
+  ["world","sky","news","twins"].forEach(id => $("#"+id).replaceChildren(h("p",{class:"loading", text:"Loading…"})));
+  ["src-world","src-sky","src-news","src-twins","src-clock"].forEach(id => $("#"+id).textContent = "");
+  const wd = DAYS[new Date(Date.UTC(b.y,b.m-1,b.d)).getUTCDay()];
+  S.weekday = wd;
+  $("#sum-title").textContent = `${wd}, ${b.d} ${MONTHS[b.m-1]} ${b.y}`;
+  renderFacts();
+  $("#ch-world").scrollIntoView({behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block:"start"});
+
+  const live = await checkLive();
+  if (live){
+    await Promise.allSettled([loadWorld(b), loadNews(b), loadSky(b)]);
+  } else {
+    await loadFromClaude(b);
+  }
+  if (S.offset == null) S.offset = -new Date(Date.UTC(b.y,b.m-1,b.d,b.hh,b.mm)).getTimezoneOffset()*60; // fallback: viewer's timezone
+  renderFacts(); startClock(); drawAll();
+}
+
+function renderFacts(){
+  const b = S.b, f = $("#sum-facts"); f.textContent = "";
+  const birthMs = Date.UTC(b.y,b.m-1,b.d,b.hh,b.mm) - (S.offset ?? 0)*1000;
+  const moon = moonPhase(birthMs);
+  S.moon = moon;
+  f.append(
+    h("span",null, b.hasTime ? `Born ${pad(b.hh)}:${pad(b.mm)} local time` : "Birth time not given (noon used)"),
+    h("span",null, S.place ? placeLabel(S.place) : (b.place || "Birthplace not given")),
+    h("span",null, `${moon.name}, ${moon.illum}% lit`)
+  );
+}
+
+/* ---------- Wikipedia: events, births, observances ---------- */
+async function loadWorld(b){
+  try {
+    const d = await getJSON(`https://en.wikipedia.org/api/rest_v1/feed/onthisday/all/${pad(b.m)}/${pad(b.d)}`);
+    const all = [...(d.selected||[]), ...(d.events||[])];
+    const seen = new Set(); const uniq = all.filter(e => { const k = e.year + e.text; if (seen.has(k)) return false; seen.add(k); return true; });
+    const same = uniq.filter(e => e.year === b.y);
+    const near = uniq.filter(e => e.year !== b.y && Math.abs(e.year - b.y) <= 3).sort((x,y)=>x.year-y.year);
+    const history = (d.selected||[]).filter(e => e.year !== b.y).slice(0, 10).sort((x,y)=>y.year-x.year);
+    S.events = {same, near, history, holidays:(d.holidays||[]).map(x => x.text).slice(0,8)};
+    renderWorld(S.events, false);
+    $("#src-world").append("Source: ", h("a",{href:`https://en.wikipedia.org/wiki/${MONTHS[b.m-1]}_${b.d}`, target:"_blank", rel:"noopener"}, "Wikipedia, " + MONTHS[b.m-1] + " " + b.d));
+
+    const births = d.births || [];
+    const twinsSame = births.filter(p => p.year === b.y);
+    const others = births.filter(p => p.year !== b.y);
+    // prefer people with photos, then spread across eras
+    others.sort((a,c) => (c.pages?.[0]?.thumbnail ? 1 : 0) - (a.pages?.[0]?.thumbnail ? 1 : 0));
+    const pick = others.slice(0, 15).sort((a,c)=>c.year-a.year);
+    renderTwins(twinsSame.map(toTwin), pick.map(toTwin), false);
+    $("#src-twins").append("Source: Wikipedia births list");
+  } catch {
+    $("#world").replaceChildren(h("p",{class:"note", text:"We couldn't reach Wikipedia just now. Try again in a minute."}));
+    $("#twins").replaceChildren(h("p",{class:"note", text:"Birthday twins could not load. Try again in a minute."}));
+  }
+}
+function toTwin(p){
+  const pg = p.pages?.[0];
+  const parts = p.text.split(",");
+  return {year:p.year, name: parts[0].trim(), desc: parts.slice(1).join(",").replace(/\(d\. \d+\)/,"").replace(/\(b\. \d+\)/,"").trim(),
+          img: pg?.thumbnail?.source, url: pg?.content_urls?.desktop?.page};
+}
+function renderWorld(ev, ai){
+  const box = $("#world"); box.textContent = "";
+  const b = S.b;
+  if (ev.same.length){
+    box.append(h("div",{class:"feature"},
+      h("h4",null,`On the exact day you were born, ${b.d} ${MONTHS[b.m-1]} ${b.y}`),
+      h("ul",null, ev.same.map(e => h("li",null,e.text)))));
+  } else {
+    box.append(h("p",{class:"note", text:`No single headline event is recorded for ${b.d} ${MONTHS[b.m-1]} ${b.y} in this source. The headlines chapter below has the day's news where it exists.`}));
+  }
+  if (ev.near && ev.near.length){
+    box.append(h("div",null, h("p",{class:"eyebrow", text:"Around your birth year, on this date"}),
+      h("ol",{class:"timeline"}, ev.near.slice(0,5).map(e => h("li",null, h("span",{class:"yr", text:e.year}), h("span",null,e.text))))));
+  }
+  if (ev.history.length){
+    box.append(h("div",null, h("p",{class:"eyebrow", text:`${MONTHS[b.m-1]} ${b.d} across history`}),
+      h("ol",{class:"timeline"}, ev.history.map(e => h("li",null, h("span",{class:"yr", text:e.year}), h("span",null,e.text))))));
+  }
+  if (ev.holidays && ev.holidays.length){
+    box.append(h("div",null, h("p",{class:"eyebrow", text:"Observed on your birthday"}),
+      h("div",{class:"chips"}, ev.holidays.map(t => h("span",{class:"chip", text:t})))));
+  }
+  if (ai) box.append(aiNote());
+  S.topEvent = ev.same[0]?.text || ev.history[0] && `${ev.history[0].year}: ${ev.history[0].text}` || "";
+}
+function renderTwins(same, others, ai){
+  const box = $("#twins"); box.textContent = "";
+  const card = (p, isSame) => h("div",{class:"twin" + (isSame ? " same" : "")},
+    h("div",{class:"ph"}, p.img ? h("img",{src:p.img, alt:"", loading:"lazy", referrerpolicy:"no-referrer"}) : (p.name[0] || "?")),
+    h("div",{style:"min-width:0"},
+      h("span",{class:"y", text: isSame ? "Same day as you" : `Born ${p.year}`}),
+      p.url ? h("a",{href:p.url, target:"_blank", rel:"noopener", style:"color:inherit;text-decoration:none"}, h("b",null,p.name)) : h("b",null,p.name),
+      p.desc ? h("span",null,p.desc) : null));
+  if (same.length){
+    box.append(h("div",null, h("p",{class:"eyebrow", text:"Born the very same day as you"}), h("div",{class:"twins"}, same.map(p => card(p,true)))));
+  }
+  box.append(h("div",null, h("p",{class:"eyebrow", text:`Share your birthday, ${MONTHS[S.b.m-1]} ${S.b.d}`}), h("div",{class:"twins"}, others.map(p => card(p,false)))));
+  box.append(h("p",{class:"note", text:"These people share your calendar date. Their birth time and birthplace are different from yours unless stated."}));
+  if (ai) box.append(aiNote());
+  S.twin = same[0]?.name || others[0]?.name || "";
+}
+
+/* ---------- Wikipedia Current Events portal: headlines ---------- */
+async function loadNews(b){
+  const box = $("#news");
+  const page = `Portal:Current_events/${b.y}_${MONTHS[b.m-1]}_${b.d}`;
+  let items = [];
+  try {
+    const d = await getJSON(`https://en.wikipedia.org/w/api.php?action=parse&format=json&formatversion=2&origin=*&prop=text&page=${encodeURIComponent(page)}`);
+    if (d.parse?.text) items = parseCurrentEvents(d.parse.text);
+  } catch {}
+  box.textContent = "";
+  if (items.length){
+    box.append(h("div",{class:"heads"}, items.map(it => h("article",{class:"head"},
+      h("span",{class:"cat", text: it.cat || "News"}),
+      h("p",null, it.text),
+      it.src ? h("a",{href:it.src.href, target:"_blank", rel:"noopener", class:"small"}, it.src.label) : null))));
+    $("#src-news").append("Source: ", h("a",{href:"https://en.wikipedia.org/wiki/" + page, target:"_blank", rel:"noopener"}, "Wikipedia Current Events portal"));
+    S.headline = items[0].text;
+  } else {
+    const fall = (S.events?.same || []);
+    box.append(h("p",{class:"note", text: b.y < 1995
+      ? `Day-by-day news records in our sources start in the mid-1990s, so there's no verified front page for ${b.d} ${MONTHS[b.m-1]} ${b.y}. The biggest stories of that date are in "The world that day" above.`
+      : `No verified news log exists for this date in our source. The events above are the best record of the day.`}));
+    if (fall.length){ S.headline = fall[0].text; }
+    box.append(h("p",{class:"small muted"}, "Want the actual newspaper? Try ", h("a",{href:"https://news.google.com/newspapers", target:"_blank", rel:"noopener"},"Google News Archive"), " or ", h("a",{href:"https://chroniclingamerica.loc.gov/", target:"_blank", rel:"noopener"},"Chronicling America"), "."));
+  }
+}
+function parseCurrentEvents(html){
+  const doc = new DOMParser().parseFromString(html, "text/html");
+  doc.querySelectorAll("sup, .mw-editsection, style").forEach(n => n.remove());
+  const root = doc.querySelector(".current-events-content") || doc.querySelector(".description") || doc.body;
+  const out = []; let cat = "";
+  const perCat = {};
+  const walk = (ul, topic) => {
+    for (const li of ul.children){
+      if (li.tagName !== "LI") continue;
+      const sub = li.querySelector(":scope > ul");
+      if (sub){
+        const own = [...li.childNodes].filter(n => n.nodeName !== "UL").map(n => n.textContent).join("").trim();
+        walk(sub, own || topic);
+      } else {
+        let text = li.textContent.replace(/\s+/g," ").trim();
+        const ext = li.querySelector("a.external");
+        let src = null;
+        if (ext){ src = {href: ext.href, label: ext.textContent.replace(/[()]/g,"").trim() || "Source"}; text = text.replace(/\s*\([^()]*\)\s*$/, ""); }
+        if (text.length < 25) continue;
+        perCat[cat] = (perCat[cat] || 0) + 1;
+        if (perCat[cat] > 3) continue;
+        out.push({cat, text: topic && !text.startsWith(topic) ? `${topic}: ${text}` : text, src});
+      }
+    }
+  };
+  for (const el of root.querySelectorAll(":scope > *, :scope > div > *")){
+    if (el.tagName === "UL") walk(el, "");
+    else { const bold = el.querySelector("b") || (el.tagName === "B" ? el : null); if (bold && el.textContent.trim().length < 60) cat = bold.textContent.trim(); }
+    if (out.length >= 12) break;
+  }
+  return out.slice(0, 12);
+}
+
+/* ---------- Open-Meteo: weather ---------- */
+async function loadSky(b){
+  const box = $("#sky");
+  if (!b.place){ box.replaceChildren(h("p",{class:"note", text:"Add your birthplace to see the weather on the day you were born."})); return; }
+  try {
+    let place = placeMap.get(b.place);
+    if (!place){ const r = await geocode(b.place); place = r[0]; }
+    if (!place){ box.replaceChildren(h("p",{class:"note", text:`We couldn't find "${b.place}". Try just the city name, then pick it from the list.`})); return; }
+    S.place = place;
+    $("#sky-title").textContent = `The sky over ${place.name}`;
+    if (b.y < 1940){
+      box.replaceChildren(h("p",{class:"note", text:"Historical weather estimates start in 1940, so we can't rebuild the sky for this date."}));
+      S.offset = await offsetOnly(place, b); return;
+    }
+    const date = `${b.y}-${pad(b.m)}-${pad(b.d)}`;
+    const url = `https://archive-api.open-meteo.com/v1/archive?latitude=${place.latitude}&longitude=${place.longitude}&start_date=${date}&end_date=${date}&timezone=auto` +
+      `&hourly=temperature_2m,apparent_temperature,relative_humidity_2m,precipitation,weather_code,cloud_cover,wind_speed_10m` +
+      `&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,sunrise,sunset,weather_code,daylight_duration`;
+    const w = await getJSON(url, 15000);
+    S.offset = w.utc_offset_seconds ?? null;
+    S.weather = w; renderSky(w, b, place);
+    $("#src-sky").append("Source: ", h("a",{href:"https://open-meteo.com/en/docs/historical-weather-api", target:"_blank", rel:"noopener"}, "Open-Meteo historical archive (ERA5)"));
+  } catch {
+    box.replaceChildren(h("p",{class:"note", text:"The weather archive didn't answer. Try again in a minute."}));
+  }
+}
+async function offsetOnly(place, b){
+  try { const w = await getJSON(`https://api.open-meteo.com/v1/forecast?latitude=${place.latitude}&longitude=${place.longitude}&timezone=auto&forecast_days=1&daily=sunrise`); return w.utc_offset_seconds; } catch { return null; }
+}
+function renderSky(w, b, place){
+  const box = $("#sky"); box.textContent = "";
+  const H = w.hourly, D = w.daily, i = Math.min(b.hh, (H.time?.length || 24) - 1);
+  const t = H.temperature_2m[i], code = H.weather_code[i];
+  const cond = WMO[code] ?? "—";
+  const sr = D.sunrise[0]?.slice(11), ss = D.sunset[0]?.slice(11);
+  const minutes = b.hh*60 + b.mm, toMin = s => s ? (+s.slice(0,2))*60 + (+s.slice(3,5)) : null;
+  const srM = toMin(sr), ssM = toMin(ss);
+  let light = "";
+  if (srM != null && ssM != null && b.hasTime){
+    if (minutes < srM) light = `${Math.round((srM-minutes)/6)/10} h before sunrise`;
+    else if (minutes > ssM) light = `${Math.round((minutes-ssM)/6)/10} h after sunset`;
+    else light = `${Math.round((minutes-srM)/6)/10} h after sunrise`;
+  }
+  S.sky = {t, cond, light, place: place.name};
+  box.append(h("div",{class:"wx"},
+    h("div",{class:"wx-main"},
+      h("span",{class:"eyebrow", text: b.hasTime ? `At ${pad(b.hh)}:${pad(b.mm)}, ${place.name}` : `Midday, ${place.name}`}),
+      h("span",{class:"wx-temp mono", text:`${Math.round(t)}°C`}),
+      h("span",{class:"wx-cond", text:cond}),
+      h("span",{class:"muted small", text:`Felt like ${Math.round(H.apparent_temperature[i])}°C · Day ranged ${Math.round(D.temperature_2m_min[0])}° to ${Math.round(D.temperature_2m_max[0])}°C`}),
+      light ? h("span",{class:"muted small", text:`You arrived ${light}.`}) : null),
+    h("div",{class:"wx-grid"},
+      cell(`${H.relative_humidity_2m[i]}%`,"Humidity"), cell(`${Math.round(H.wind_speed_10m[i])} km/h`,"Wind"),
+      cell(`${H.cloud_cover[i]}%`,"Cloud cover"), cell(`${D.precipitation_sum[0]} mm`,"Rain that day"),
+      cell(sr || "—","Sunrise"), cell(ss || "—","Sunset"))));
+  box.append(h("div",{class:"dayline"}, tempChart(H, b)));
+  box.append(h("p",{class:"note", text:`Estimated from the ERA5 climate reanalysis for the grid around ${placeLabel(place)}. Local times use ${w.timezone}.`}));
+}
+const cell = (v, l) => h("div",null, h("b",{text:v}), h("span",{text:l}));
+function tempChart(H, b){
+  const T = H.temperature_2m, P = H.precipitation, n = T.length;
+  const W = 760, Ht = 200, L = 40, R = 16, Tp = 18, B = 34;
+  const lo = Math.floor(Math.min(...T) - 1), hi = Math.ceil(Math.max(...T) + 1);
+  const x = i => L + (W-L-R) * i/(n-1), y = v => Tp + (Ht-Tp-B) * (1 - (v-lo)/(hi-lo || 1));
+  const maxP = Math.max(1, ...P);
+  const NS = "http://www.w3.org/2000/svg";
+  const s = (tag, a) => { const e = document.createElementNS(NS, tag); for (const k in a) e.setAttribute(k, a[k]); return e; };
+  const svg = s("svg",{viewBox:`0 0 ${W} ${Ht}`, role:"img", "aria-label":"Hourly temperature on your birth day"});
+  const ticks = [lo, Math.round((lo+hi)/2), hi];
+  ticks.forEach(v => { svg.append(s("line",{x1:L,x2:W-R,y1:y(v),y2:y(v),stroke:"var(--line)","stroke-width":1}));
+    const tx = s("text",{x:L-8,y:y(v)+4,"text-anchor":"end","font-size":11,fill:"var(--muted)","font-family":"IBM Plex Mono, monospace"}); tx.textContent = v+"°"; svg.append(tx); });
+  P.forEach((p,i) => { if (p > 0){ const hgt = (Ht-Tp-B) * 0.35 * p/maxP; svg.append(s("rect",{x:x(i)-5,y:Ht-B-hgt,width:10,height:hgt,fill:"var(--accent)",opacity:.35,rx:2})); } });
+  let dpath = T.map((v,i) => `${i?"L":"M"}${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(" ");
+  svg.append(s("path",{d:`${dpath} L${x(n-1)},${Ht-B} L${x(0)},${Ht-B} Z`, fill:"var(--candle)", opacity:.12}));
+  svg.append(s("path",{d:dpath, fill:"none", stroke:"var(--candle)","stroke-width":2.5,"stroke-linejoin":"round"}));
+  [0,6,12,18,23].forEach(i => { const tx = s("text",{x:x(i),y:Ht-12,"text-anchor":"middle","font-size":11,fill:"var(--muted)","font-family":"IBM Plex Mono, monospace"}); tx.textContent = pad(i)+":00"; svg.append(tx); });
+  const bi = Math.min(b.hh, n-1);
+  svg.append(s("line",{x1:x(bi),x2:x(bi),y1:Tp-6,y2:Ht-B,stroke:"var(--ink)","stroke-dasharray":"3 3"}));
+  svg.append(s("circle",{cx:x(bi),cy:y(T[bi]),r:6,fill:"var(--candle)",stroke:"var(--surface)","stroke-width":2}));
+  const lab = s("text",{x:Math.min(Math.max(x(bi),L+40),W-R-40),y:Tp-8+6,"text-anchor":"middle","font-size":12,fill:"var(--ink)","font-family":"IBM Plex Mono, monospace"});
+  lab.textContent = b.hasTime ? "you arrived" : "midday"; svg.append(lab);
+  return svg;
+}
+
+/* ---------- Fallback: ask Claude (inside the Claude artifact viewer, where outside APIs are blocked) ---------- */
+function aiNote(){ return h("p",{class:"note"}, h("span",{class:"badge ai", text:"AI-compiled"}), " Gathered by Claude from historical knowledge, not a live database. Check key facts before you share them. The deployed site loads these from Wikipedia."); }
+async function loadFromClaude(b){
+  const sample = await getSample();
+  const dateStr = `${b.d} ${MONTHS[b.m-1]} ${b.y}`;
+  if (!sample){
+    const msg = "This view can't reach outside data sources. Open the deployed site to load live history and weather.";
+    ["world","sky","news","twins"].forEach(id => $("#"+id).replaceChildren(h("p",{class:"note", text:msg})));
+    return;
+  }
+  const prompt = `You are a careful historian. For the date ${dateStr} and the birthplace "${b.place || "unknown"}", return ONLY JSON with this shape:
+{"place_resolved":"City, Country or empty","utc_offset_hours":number|null,
+"events_that_day":[{"text":"..."}],
+"on_this_date":[{"year":1969,"text":"..."}],
+"headlines":[{"category":"Politics|Science|Sports|Disasters|Business|Culture","text":"..."}],
+"births_same_day":[{"name":"...","desc":"short role, nationality"}],
+"births_on_this_date":[{"year":1950,"name":"...","desc":"short role, nationality"}],
+"observances":["..."],
+"typical_weather":{"summary":"one sentence on the usual weather in that place in that month","avg_high_c":number,"avg_low_c":number}}
+Rules: events_that_day = things that happened on exactly ${dateStr} (0-5 items). on_this_date = 8 notable events on ${MONTHS[b.m-1]} ${b.d} in other years. headlines = up to 6 major world news stories of ${dateStr} or that same week. births_same_day = famous people born exactly ${dateStr} (0-4). births_on_this_date = 10 famous people born on ${MONTHS[b.m-1]} ${b.d}, mixed eras and fields. utc_offset_hours = the place's UTC offset on that date. Include only facts you are confident about; leave a list empty rather than guess. One plain sentence per text.`;
+  try {
+    const r = await sample.json(prompt, {modelTier: "default"});
+    S.ai = r;
+    if (typeof r.utc_offset_hours === "number") S.offset = r.utc_offset_hours * 3600;
+    if (r.place_resolved) S.placeAI = r.place_resolved;
+    S.events = {same: (r.events_that_day||[]).map(e => ({text:e.text, year:b.y})), near:[],
+      history: (r.on_this_date||[]).sort((a,c)=>c.year-a.year), holidays: r.observances || []};
+    renderWorld(S.events, true);
+    renderTwins((r.births_same_day||[]).map(p => ({...p, year:b.y})), (r.births_on_this_date||[]).sort((a,c)=>c.year-a.year), true);
+    const nb = $("#news"); nb.textContent = "";
+    const hs = r.headlines || [];
+    if (hs.length){ nb.append(h("div",{class:"heads"}, hs.map(x => h("article",{class:"head"}, h("span",{class:"cat", text:x.category || "News"}), h("p",null,x.text))))); S.headline = hs[0].text; }
+    else nb.append(h("p",{class:"note", text:`No well-documented headlines were found for ${dateStr}.`}));
+    nb.append(aiNote());
+    const sky = $("#sky"); sky.textContent = "";
+    const tw = r.typical_weather;
+    $("#sky-title").textContent = `The sky over ${(r.place_resolved || b.place || "your birthplace").split(",")[0]}`;
+    if (tw){
+      sky.append(h("div",{class:"wx"},
+        h("div",{class:"wx-main"}, h("span",{class:"eyebrow", text:`Typical ${MONTHS[b.m-1]}`}),
+          h("span",{class:"wx-temp mono", text:`${Math.round(tw.avg_high_c)}°C`}), h("span",{class:"wx-cond", text:`Average high, low ${Math.round(tw.avg_low_c)}°C`})),
+        h("div",{class:"wx-main"}, h("p",{style:"margin:0", text:tw.summary}))));
+      S.sky = {t: tw.avg_high_c, cond: "typical " + MONTHS[b.m-1], place:(r.place_resolved||b.place||"").split(",")[0]};
+    }
+    sky.append(h("p",{class:"note", text:"This is the usual climate for that month, not that day's record. The deployed site loads the actual day's weather from the Open-Meteo archive."}));
+  } catch (e) {
+    const msg = e && e.code === "not_granted" ? "Allow Claude for this page to compile your day's history, or open the deployed site." : "Claude couldn't compile this day right now. Try again in a moment.";
+    ["world","sky","news","twins"].forEach(id => $("#"+id).replaceChildren(h("p",{class:"note", text:msg})));
+  }
+}
+
+/* ---------- Life clock ---------- */
+function startClock(){
+  const b = S.b, box = $("#clock"); box.textContent = "";
+  const birthMs = Date.UTC(b.y,b.m-1,b.d,b.hh,b.mm) - S.offset*1000;
+  S.birthMs = birthMs;
+  const units = ["years","months","days","hours","mins","secs"], labels = ["Years","Months","Days","Hours","Minutes","Seconds"];
+  const cells = units.map((u,i) => { const v = h("b",{text:"0"}); return {u, v, el: h("div",null, v, h("span",{text:labels[i]}))}; });
+  box.append(h("div",{class:"clock", "aria-live":"off"}, cells.map(c => c.el)));
+  const st = {};
+  const statEl = (k, label) => { st[k] = h("b",{text:"—"}); return h("div",{class:"stat"}, st[k], h("span",{text:label})); };
+  box.append(h("div",{class:"stats"},
+    statEl("days","days on Earth"), statEl("hours","hours lived"), statEl("beats","heartbeats (≈ 80 per minute)"),
+    statEl("km","km travelled around the Sun"), statEl("moons","full moons seen"), statEl("next","until your next birthday")));
+  const ms = [10000, 20000, 30000].map(k => ({k, t: birthMs + k*864e5}));
+  const fmtD = t => new Date(t + S.offset*1000).toLocaleDateString("en-GB",{day:"numeric",month:"long",year:"numeric",timeZone:"UTC"});
+  box.append(h("div",{class:"chips"}, ms.map(m => h("span",{class:"chip", text:`${fmt(m.k)}th day: ${fmtD(m.t)}${m.t < Date.now() ? " ✓" : ""}`}))));
+  $("#src-clock").textContent = b.hasTime ? `Counted from ${pad(b.hh)}:${pad(b.mm)} at UTC${S.offset>=0?"+":"−"}${pad(Math.floor(Math.abs(S.offset)/3600))}:${pad(Math.abs(S.offset)%3600/60)}.` : "No birth time given, so we count from noon.";
+  const tick = () => {
+    const now = Date.now(), d = lifeDiff(birthMs, S.offset, now), secs = (now - birthMs)/1000;
+    cells.forEach(c => c.v.textContent = c.u === "years" ? d[c.u] : pad(d[c.u]));
+    st.days.textContent = fmt(secs/86400); st.hours.textContent = fmt(secs/3600);
+    st.beats.textContent = fmt(secs*80/60); st.km.textContent = fmt(secs*29.78);
+    st.moons.textContent = fmt(secs/86400/29.5306);
+    const nb = nextBirthday(b, S.offset, now);
+    st.next.textContent = nb.days === 0 ? "Today! 🎂" : `${nb.days} days`;
+    S.life = {days: Math.floor(secs/86400), years: d.years, beats: secs*80/60};
+  };
+  tick(); clearInterval(clockTimer); clockTimer = setInterval(tick, 1000);
+}
+
+/* ---------- Card ---------- */
+function palette(hour){
+  if (hour < 5 || hour >= 20) return {a:"#0B1430", b:"#24346B", ink:"#F4F1E8", sub:"#B9C3E6", glow:"#F0B457"};
+  if (hour < 8) return {a:"#2E3A78", b:"#E59A7A", ink:"#FFF8F0", sub:"#FFE2D2", glow:"#FFD07A"};
+  if (hour < 17) return {a:"#1F6F8B", b:"#8FD0E0", ink:"#FFFFFF", sub:"#E4F5FA", glow:"#FFE08A"};
+  return {a:"#3B2560", b:"#E2735A", ink:"#FFF6EE", sub:"#F7D4C6", glow:"#FFC46B"};
+}
+function wrap(ctx, text, x, y, maxW, lh, maxLines){
+  const words = String(text).split(/\s+/); let line = "", lines = [];
+  for (const w of words){ const t = line ? line + " " + w : w; if (ctx.measureText(t).width > maxW && line){ lines.push(line); line = w; } else line = t; }
+  if (line) lines.push(line);
+  if (lines.length > maxLines){ lines = lines.slice(0, maxLines); lines[maxLines-1] = lines[maxLines-1].replace(/\s*\S*$/,"") + "…"; }
+  lines.forEach((l,i) => ctx.fillText(l, x, y + i*lh)); return lines.length * lh;
+}
+function drawCard(cv, info){
+  const ctx = cv.getContext("2d"), W = cv.width, H = cv.height, p = palette(info.hour);
+  const g = ctx.createLinearGradient(0,0,0,H); g.addColorStop(0,p.a); g.addColorStop(1,p.b);
+  ctx.fillStyle = g; ctx.fillRect(0,0,W,H);
+  // stars / sun
+  let seed = info.seedNum || 7; const rnd = () => (seed = (seed*16807) % 2147483647) / 2147483647;
+  ctx.fillStyle = "rgba(255,255,255,.55)";
+  for (let i=0;i<70;i++){ const r = rnd()*2.2+.4; ctx.beginPath(); ctx.arc(rnd()*W, rnd()*H*.55, r, 0, 7); ctx.fill(); }
+  // moon disc with phase shading
+  const mx = W-190, my = 220, mr = 86;
+  ctx.fillStyle = p.glow; ctx.globalAlpha = .18; ctx.beginPath(); ctx.arc(mx,my,mr+40,0,7); ctx.fill(); ctx.globalAlpha = 1;
+  ctx.fillStyle = "#F5EFD9"; ctx.beginPath(); ctx.arc(mx,my,mr,0,7); ctx.fill();
+  const age = info.moonAge ?? 14.8, f = age/29.5306;
+  ctx.save(); ctx.beginPath(); ctx.arc(mx,my,mr,0,7); ctx.clip();
+  ctx.fillStyle = "rgba(10,16,40,.78)";
+  const k = Math.cos(2*Math.PI*f); // 1 new → -1 full
+  ctx.beginPath();
+  if (f < .5){ ctx.arc(mx,my,mr,Math.PI/2,-Math.PI/2,false); ctx.ellipse(mx,my,Math.abs(k)*mr,mr,0,-Math.PI/2,Math.PI/2,k<0); }
+  else { ctx.arc(mx,my,mr,-Math.PI/2,Math.PI/2,false); ctx.ellipse(mx,my,Math.abs(k)*mr,mr,0,Math.PI/2,-Math.PI/2,k<0); }
+  ctx.fill(); ctx.restore();
+
+  const X = 90; ctx.textBaseline = "alphabetic"; ctx.fillStyle = p.sub;
+  ctx.font = '500 30px "IBM Plex Mono", monospace'; ctx.fillText(info.example ? "EXAMPLE · THE DAY I WAS BORN" : "THE DAY I WAS BORN", X, 140);
+  ctx.fillStyle = p.ink; ctx.font = '800 200px "Bricolage Grotesque", sans-serif'; ctx.fillText(String(info.d), X, 420);
+  ctx.font = '700 86px "Bricolage Grotesque", sans-serif'; ctx.fillText(`${MONTHS[info.m-1]} ${info.y}`, X, 520);
+  ctx.fillStyle = p.sub; ctx.font = '400 44px "Newsreader", Georgia, serif';
+  ctx.fillText(`${info.weekday}${info.time ? " · " + info.time : ""}`, X, 590);
+  ctx.fillText(info.place || "", X, 646);
+
+  ctx.strokeStyle = "rgba(255,255,255,.35)"; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(X,700); ctx.lineTo(W-X,700); ctx.stroke();
+  const block = (label, text, y, lines) => { ctx.fillStyle = p.sub; ctx.font = '500 24px "IBM Plex Mono", monospace'; ctx.fillText(label, X, y);
+    ctx.fillStyle = p.ink; ctx.font = '400 40px "Newsreader", Georgia, serif'; return wrap(ctx, text, X, y + 52, W - 2*X, 52, lines); };
+  let y = 770;
+  if (info.weather){ y += block("THE SKY", info.weather, y, 1) + 48; }
+  if (info.event){ y += block("THAT DAY IN HISTORY", info.event, y, 3) + 48; }
+  if (info.moon){ y += block("THE MOON", info.moon, y, 1) + 48; }
+
+  // life numbers band
+  ctx.fillStyle = "rgba(0,0,0,.22)"; ctx.fillRect(0, H-210, W, 210);
+  const nums = [[info.daysAlive, "DAYS ON EARTH"], [info.beats, "HEARTBEATS"]];
+  nums.forEach(([v,l],i) => { const x = X + i*470; ctx.fillStyle = p.glow; ctx.font = '500 64px "IBM Plex Mono", monospace'; ctx.fillText(v, x, H-110);
+    ctx.fillStyle = p.sub; ctx.font = '500 22px "IBM Plex Mono", monospace'; ctx.fillText(l, x, H-66); });
+}
+function cardInfo(example){
+  const b = example ? {y:1998,m:3,d:14,hh:6,mm:40,hasTime:true} : S.b;
+  const offset = example ? 6*3600 : S.offset;
+  const birthMs = Date.UTC(b.y,b.m-1,b.d,b.hh,b.mm) - offset*1000;
+  const secs = (Date.now() - birthMs)/1000, moon = moonPhase(birthMs);
+  const weekday = DAYS[new Date(Date.UTC(b.y,b.m-1,b.d)).getUTCDay()];
+  let place = example ? "Dhaka, Bangladesh" : (S.place ? [S.place.name, S.place.country].filter(Boolean).join(", ") : (S.placeAI || b.place || ""));
+  let weather = example ? "Clear sky, 21°C at sunrise" : (S.sky ? `${S.sky.cond[0].toUpperCase()+S.sky.cond.slice(1)}, ${Math.round(S.sky.t)}°C${S.sky.light ? ", " + S.sky.light : ""}` : "");
+  let event = example ? "Shown here: the biggest story from your birth date, pulled from the archives." : (S.events?.same?.[0]?.text || S.headline || S.topEvent || "");
+  return {y:b.y, m:b.m, d:b.d, hour:b.hh, time: b.hasTime ? `${pad(b.hh)}:${pad(b.mm)}` : "", weekday, place, weather, event,
+    moon: `${moon.name}, ${moon.illum}% lit`, moonAge: moon.age, daysAlive: fmt(secs/86400), beats: fmt(secs*80/60),
+    example, seedNum: b.y*400 + b.m*31 + b.d};
+}
+async function fontsReady(){ try { await Promise.all([document.fonts.load('800 100px "Bricolage Grotesque"'), document.fonts.load('400 40px "Newsreader"'), document.fonts.load('500 30px "IBM Plex Mono"')]); } catch {} }
+async function drawAll(){
+  await fontsReady();
+  const info = cardInfo(false);
+  drawCard($("#card"), info); drawCard($("#preview"), info);
+  $("#preview-label").textContent = "Your card";
+  const b = S.b;
+  $("#share-text").value = `I was born on a ${info.weekday}, ${b.d} ${MONTHS[b.m-1]} ${b.y}${info.place ? " in " + info.place : ""}.` +
+    (info.weather ? ` The sky that day: ${info.weather.toLowerCase()}.` : "") +
+    (info.event ? ` That day: ${info.event}` : "") +
+    ` I've now spent ${info.daysAlive} days on Earth. What was the world like when you were born?\n${location.href.split("#")[0]}`;
+}
+
+/* ---------- Actions ---------- */
+const toast = t => { $("#toast").textContent = t; setTimeout(() => { if ($("#toast").textContent === t) $("#toast").textContent = ""; }, 4000); };
+$("#copy").addEventListener("click", () => {
+  const ta = $("#share-text");
+  const p = navigator.clipboard?.writeText ? navigator.clipboard.writeText(ta.value) : Promise.reject();
+  p.then(() => toast("Copied. Paste it with your card.")).catch(() => { ta.focus(); ta.select(); toast("Selected. Press Ctrl+C (or ⌘C) to copy."); });
+});
+$("#dl").addEventListener("click", () => {
+  const b = S.b, name = `the-day-i-was-born-${b.y}-${pad(b.m)}-${pad(b.d)}.png`;
+  $("#card").toBlob(async blob => {
+    if (!blob) return toast("Couldn't create the image. Try again.");
+    if (window.claude && window.claude.use){
+      const dl = await window.claude.use("downloads").catch(() => null);
+      if (dl){ try { await dl.save({filename: name, data: blob}); toast("Saved."); } catch (e) { toast(e?.code === "declined" ? "Download cancelled." : "Download isn't available here. Right-click the card to save it."); } return; }
+    }
+    const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name; document.body.append(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 2000); toast("Downloaded.");
+  }, "image/png");
+});
+
+/* ---------- first paint ---------- */
+(async () => { await fontsReady(); drawCard($("#preview"), cardInfo(true)); })();
+checkLive();
+})();
+</script>
+
+</body>
+</html>
